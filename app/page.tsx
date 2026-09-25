@@ -20,26 +20,21 @@ export default async function Home() {
         <main className="page">
             <div className="container">
                 <h1>My Favorite Cafes</h1>
-                <p className="subtitle">a list of my favorite cafes around campus</p>
+                <p className="subtitle">
+                    a list of my favorite cafes around campus
+                </p>
 
-                <div className="tableContainer">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Cafe Name</th>
-                        </tr>
-                        </thead>
-
-                        <tbody>
-                        {cafes.map((cafe) => (
-                            <tr key={cafe.id}>
-                                <td>{cafe.id}</td>
-                                <td>{cafe.name}</td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                <div className="cafeList">
+                    {cafes.map((cafe) => (
+                        <div className="cafeCard" key={cafe.id}>
+                            <div className="cafeInfo">
+                                <h2>{cafe.name}</h2>
+                                <p className="rating">
+                                    ★ {cafe.rating}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </main>
