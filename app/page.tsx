@@ -9,7 +9,7 @@ export default async function Home() {
         return (
             <main className="page">
                 <div className="container">
-                    <h1>My Favorite Cafes</h1>
+                    <h1>Student-Favorite Cafes Around Campus</h1>
                     <p>Error loading cafes: {error.message}</p>
                 </div>
             </main>
@@ -21,7 +21,7 @@ export default async function Home() {
             <div className="container">
                 <h1>My Favorite Cafes</h1>
                 <p className="subtitle">
-                    a list of my favorite cafes around campus
+                    a list of some student favorite cafes around campus, perfect for your next coffee!
                 </p>
 
                 <div className="cafeList">
