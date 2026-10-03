@@ -1,6 +1,8 @@
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/server'
+import AuthButton from './auth-button'
 
 export default async function Home() {
+    const supabase = await createClient()
     const { data: cafes, error } = await supabase
         .from('cafe')
         .select('*')
@@ -19,10 +21,11 @@ export default async function Home() {
     return (
         <main className="page">
             <div className="container">
-                <h1>My Favorite Cafes</h1>
+                <h1>Student-Favorite Cafes Around Campus</h1>
                 <p className="subtitle">
                     a list of some student favorite cafes around campus, perfect for your next coffee!
                 </p>
+                <AuthButton />
 
                 <div className="cafeList">
                     {cafes.map((cafe) => (
