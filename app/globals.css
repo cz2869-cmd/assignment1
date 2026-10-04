@@ -2,78 +2,494 @@
   box-sizing: border-box;
 }
 
+html {
+  background: #f3e6d4;
+}
+
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #f5f9ff;
-  color: #172b4d;
+  font-family: var(--font-body), "Nunito", sans-serif;
+  color: #3c2a21;
+  background:
+    radial-gradient(circle at top left, rgba(110, 160, 122, 0.18), transparent 32%),
+    radial-gradient(circle at top right, rgba(196, 120, 90, 0.16), transparent 28%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(60, 42, 33, 0.015) 0 1px,
+      transparent 1px 18px
+    ),
+    #f3e6d4;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+textarea,
+input {
+  font: inherit;
 }
 
 .page {
   min-height: 100vh;
-  padding: 60px 24px;
+  padding: 28px 20px 72px;
 }
 
 .container {
-  max-width: 800px;
+  max-width: 980px;
   margin: 0 auto;
 }
 
+h1,
+h2,
+h3,
+.logo {
+  font-family: var(--font-display), "Fraunces", serif;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
 h1 {
+  margin: 8px 0 0;
+  font-size: clamp(36px, 6vw, 64px);
+  color: #3c2a21;
+}
+
+h2 {
   margin: 0;
-  font-size: 42px;
-  font-weight: 700;
-  letter-spacing: -1px;
-  color: #123b70;
+  font-size: 22px;
 }
 
-.subtitle {
-  margin: 10px 0 36px;
-  color: #6b7c93;
-  font-size: 16px;
+h3 {
+  margin: 0;
+  font-size: 26px;
 }
 
-.cafeList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.cafeCard {
-  background: white;
-  border: 1px solid #dcecff;
-  border-radius: 14px;
-  padding: 20px 24px;
-  box-shadow: 0 3px 10px rgba(30, 100, 180, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.cafeCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(30, 100, 180, 0.12);
-}
-
-.cafeInfo {
+.siteHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
 }
 
-.cafeInfo h2 {
-  margin: 0;
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  text-decoration: none;
+  color: #3c2a21;
+}
+
+.logoMark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #4a7c59;
+  color: #f6efe4;
+  font-size: 16px;
+}
+
+.authBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.authEmail {
+  color: #6b5344;
+  font-size: 14px;
+}
+
+.hero,
+.featuredBlock {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #4a7c59;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  color: #6b5344;
   font-size: 18px;
-  font-weight: 600;
-  color: #183b64;
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.cafeList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.cafeCard {
+  display: block;
+  text-decoration: none;
+  background: #fffaf3;
+  border: 1px solid #e4d2bc;
+  border-radius: 28px;
+  padding: 20px 22px 16px;
+  box-shadow: 0 10px 24px rgba(90, 58, 37, 0.08);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+  min-height: 188px;
+}
+
+.cafeCard:hover,
+.cafeCard:focus-visible {
+  transform: translateY(-6px) scale(1.01);
+  border-color: #4a7c59;
+  box-shadow: 0 18px 36px rgba(90, 58, 37, 0.14);
+}
+
+.cafeCardFeatured {
+  background: linear-gradient(180deg, #fff6ea 0%, #f7ead8 100%);
+  border-color: #c4785a;
+}
+
+.cafeCardTop {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.plant {
+  width: 64px;
+  height: 72px;
+}
+
+.cafeVibe {
+  margin: 0;
+  color: #4a7c59;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cafeNeighborhood {
+  margin: 4px 0 0;
+  color: #8a6a55;
+  font-size: 14px;
 }
 
 .rating {
   margin: 0;
   padding: 7px 12px;
-  border-radius: 20px;
-  background: #fff8dc;
-  color: #f5b700;
+  border-radius: 999px;
+  background: #fff1c9;
+  color: #b7791f;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 800;
   white-space: nowrap;
+}
+
+.cafeDescription {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin: 0;
+  color: #5c4334;
+  line-height: 1.5;
+  transition: max-height 0.28s ease, opacity 0.28s ease, margin 0.28s ease;
+}
+
+.cafeCard:hover .cafeDescription,
+.cafeCard:focus-within .cafeDescription {
+  max-height: 160px;
+  opacity: 1;
+  margin-top: 12px;
+}
+
+.cafeMeta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  color: #8a6a55;
+  font-size: 13px;
+}
+
+.cafeCta {
+  margin-left: auto;
+  color: #4a7c59;
+  font-weight: 800;
+}
+
+.primaryButton,
+.ghostButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: #4a7c59;
+  color: #fffaf3;
+}
+
+.primaryButton:disabled,
+.ghostButton:disabled,
+.voteButton:disabled,
+.starButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ghostButton {
+  background: transparent;
+  color: #3c2a21;
+  border: 1px solid #d7c0a8;
+}
+
+.textLink {
+  color: #4a7c59;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.cafeHero {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 16px;
+  background: #fffaf3;
+  border: 1px solid #e4d2bc;
+  border-radius: 32px;
+  padding: 28px;
+  margin: 18px 0 24px;
+  box-shadow: 0 12px 30px rgba(90, 58, 37, 0.08);
+}
+
+.heroDescription {
+  max-width: 640px;
+  line-height: 1.6;
+  color: #5c4334;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 18px;
+}
+
+.panel {
+  background: #fffaf3;
+  border: 1px solid #e4d2bc;
+  border-radius: 28px;
+  padding: 22px;
+  box-shadow: 0 10px 24px rgba(90, 58, 37, 0.06);
+}
+
+.panelHeader p {
+  margin: 6px 0 16px;
+  color: #8a6a55;
+}
+
+.moodRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.moodChip,
+.starButton,
+.voteButton {
+  border: 1px solid #d7c0a8;
+  background: #fff;
+  color: #3c2a21;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.moodChip {
+  padding: 8px 12px;
+}
+
+.moodChipActive {
+  background: #4a7c59;
+  border-color: #4a7c59;
+  color: #fffaf3;
+}
+
+.stackList {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stackItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  background: #f6efe4;
+}
+
+.stackBody {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.stackMeta {
+  margin: 6px 0 0;
+  color: #8a6a55;
+  font-size: 13px;
+}
+
+.voteControls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 36px;
+}
+
+.voteButton {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  line-height: 1;
+}
+
+.voteButtonActive {
+  background: #4a7c59;
+  color: #fffaf3;
+  border-color: #4a7c59;
+}
+
+.voteButtonDown {
+  background: #c4785a;
+  color: #fffaf3;
+  border-color: #c4785a;
+}
+
+.voteScore {
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.commentForm {
+  display: grid;
+  gap: 10px;
+}
+
+textarea,
+input[type="text"],
+input[type="file"] {
+  width: 100%;
+  border: 1px solid #d7c0a8;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #fff;
+  color: #3c2a21;
+}
+
+.signInHint,
+.emptyState,
+.inlineNote,
+.inlineError {
+  margin: 12px 0 0;
+  color: #6b5344;
+}
+
+.inlineError {
+  color: #a33b2b;
+}
+
+.promptDetails {
+  margin-top: 8px;
+  color: #8a6a55;
+  font-size: 13px;
+}
+
+.promptDetails p {
+  margin: 8px 0 0;
+  line-height: 1.45;
+}
+
+.banner {
+  background: #fff1c9;
+  border: 1px solid #e7c56a;
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+}
+
+.starRater {
+  margin-top: 16px;
+}
+
+.starRater p {
+  margin: 0 0 6px;
+  font-weight: 800;
+}
+
+.starRow {
+  display: flex;
+  gap: 6px;
+}
+
+.starButton {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  color: #d7c0a8;
+}
+
+.starButtonOn {
+  color: #d4a017;
+  background: #fff1c9;
+  border-color: #e7c56a;
+}
+
+.profileCard {
+  background: #fffaf3;
+  border: 1px solid #e4d2bc;
+  border-radius: 28px;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  max-width: 520px;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 24px;
+  border: 3px solid #4a7c59;
+}
+
+@media (max-width: 800px) {
+  .detailGrid,
+  .cafeHero,
+  .cafeCardTop {
+    grid-template-columns: 1fr;
+  }
+
+  .cafeCta {
+    margin-left: 0;
+  }
 }

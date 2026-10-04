@@ -1,5 +1,6 @@
 'use client'
 
+import SiteHeader from '@/app/components/site-header'
 import { createClient } from '@/lib/client'
 import { useEffect, useState } from 'react'
 
@@ -144,6 +145,7 @@ export default function ProfilePage() {
         return (
             <main className="page">
                 <div className="container">
+                    <SiteHeader />
                     <p>Loading profile...</p>
                 </div>
             </main>
@@ -153,73 +155,65 @@ export default function ProfilePage() {
     return (
         <main className="page">
             <div className="container">
-                <h1>Profile</h1>
+                <SiteHeader />
+                <h1>Your nook</h1>
+                <p className="subtitle">
+                    A name and a face so the floor knows who left the note.
+                </p>
 
-                {avatarUrl && (
-                    <div>
+                <div className="profileCard">
+                    {avatarUrl && (
                         <img
+                            className="avatar"
                             src={avatarUrl}
                             alt="Profile"
                             width={150}
                             height={150}
                         />
+                    )}
+
+                    <div>
+                        <label htmlFor="avatar">Profile photo</label>
+                        <input
+                            id="avatar"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarUpload}
+                        />
                     </div>
-                )}
 
-                <div>
-                    <label htmlFor="avatar">
-                        Profile Photo
-                    </label>
+                    <form onSubmit={handleSave} className="commentForm">
+                        <div>
+                            <label htmlFor="firstName">First name</label>
+                            <input
+                                id="firstName"
+                                type="text"
+                                value={firstName}
+                                onChange={(event) =>
+                                    setFirstName(event.target.value)
+                                }
+                            />
+                        </div>
 
-                    <input
-                        id="avatar"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarUpload}
-                    />
+                        <div>
+                            <label htmlFor="lastName">Last name</label>
+                            <input
+                                id="lastName"
+                                type="text"
+                                value={lastName}
+                                onChange={(event) =>
+                                    setLastName(event.target.value)
+                                }
+                            />
+                        </div>
+
+                        <button className="primaryButton" type="submit" disabled={saving}>
+                            {saving ? 'Saving...' : 'Save profile'}
+                        </button>
+                    </form>
+
+                    {message && <p className="inlineNote">{message}</p>}
                 </div>
-
-                <form onSubmit={handleSave}>
-                    <div>
-                        <label htmlFor="firstName">
-                            First Name
-                        </label>
-
-                        <input
-                            id="firstName"
-                            type="text"
-                            value={firstName}
-                            onChange={(event) =>
-                                setFirstName(event.target.value)
-                            }
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="lastName">
-                            Last Name
-                        </label>
-
-                        <input
-                            id="lastName"
-                            type="text"
-                            value={lastName}
-                            onChange={(event) =>
-                                setLastName(event.target.value)
-                            }
-                        />
-                    </div>
-
-                    <button type="submit" disabled={saving}>
-                        {saving ? 'Saving...' : 'Save Profile'}
-                    </button>
-                </form>
-
-                {message && <p>{message}</p>}
-
-                <a href="/">
-                    Back to Cafes
-                </a>
             </div>
         </main>
     )

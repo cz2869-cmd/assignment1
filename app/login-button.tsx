@@ -15,7 +15,7 @@ export default function LoginButton() {
     }
 
     return (
-        <button onClick={handleLogin}>
+        <button className="primaryButton" onClick={handleLogin} type="button">
             Sign in with Google
         </button>
     )

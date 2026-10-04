@@ -1,3 +1,4 @@
+import SiteHeader from '@/app/components/site-header'
 import { createClient } from '@/lib/server'
 import { redirect } from 'next/navigation'
 
@@ -15,9 +16,9 @@ export default async function ProtectedPage() {
     return (
         <main className="page">
             <div className="container">
-                <h1>Protected Page</h1>
-                <p>You are signed in as:</p>
-                <p>{user.email}</p>
+                <SiteHeader />
+                <h1>Signed in</h1>
+                <p className="subtitle">You are signed in as {user.email}.</p>
             </div>
         </main>
     )
