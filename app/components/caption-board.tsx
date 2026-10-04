@@ -20,7 +20,7 @@ export default function CaptionBoard({
   signedIn,
   userId,
 }: CaptionBoardProps) {
-  const [mood, setMood] = useState(MOODS[0].id)
+  const [mood, setMood] = useState<(typeof MOODS)[number]['id']>(MOODS[0].id)
   const [message, setMessage] = useState('')
   const [pending, startTransition] = useTransition()
   const sorted = [...captions].sort(

@@ -78,7 +78,14 @@ export function displayName(name: string) {
     .join(' ')
 }
 
-export function cafeCopy(name: string, cafe?: Partial<CafeCopy>): CafeCopy {
+export function cafeCopy(
+  name: string,
+  cafe?: {
+    description?: string | null
+    neighborhood?: string | null
+    vibe?: string | null
+  }
+): CafeCopy {
   const fallback = COPY[name.trim().toLowerCase()] ?? {
     description: 'A campus cafe worth lingering in. Pull up a chair and rate the vibe.',
     neighborhood: 'Near campus',
