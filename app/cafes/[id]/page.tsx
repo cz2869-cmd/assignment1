@@ -1,11 +1,13 @@
 import { cafeCopy, displayName } from '@/lib/cafe-copy'
 import { createClient } from '@/lib/server'
 import type { Cafe, Caption, Comment } from '@/lib/types'
+import CafePhoto from '@/app/components/cafe-photo'
 import CaptionBoard from '@/app/components/caption-board'
 import CommentBoard from '@/app/components/comment-board'
 import { PlantPot } from '@/app/components/plant-pot'
 import SiteHeader from '@/app/components/site-header'
 import StarRater from '@/app/components/star-rater'
+import VisitButton from '@/app/components/visit-button'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -56,6 +58,19 @@ export default async function CafePage({ params }: CafePageProps) {
     .select('stars, user_id')
     .eq('cafe_id', cafeId)
 
+  const { data: visits } = await supabase
+    .from('cafe_visits')
+    .select('user_id, visited_at')
+    .eq('cafe_id', cafeId)
+
+  const visitCount = visits?.length ?? 0
+  const lastVisitedAt =
+    visits
+      ?.filter((visit) => visit.user_id === user?.id)
+      .map((visit) => visit.visited_at)
+      .sort()
+      .at(-1) ?? null
+
   const communityAverage =
     ratings && ratings.length > 0
       ? ratings.reduce((sum, row) => sum + row.stars, 0) / ratings.length
@@ -75,19 +90,32 @@ export default async function CafePage({ params }: CafePageProps) {
         </a>
 
         <section className="cafeHero">
-          <PlantPot variant={typedCafe.id} />
+          <CafePhoto
+            hero
+            name={displayName(typedCafe.name)}
+            address={copy.address}
+            image={copy.image}
+          />
           <div>
             <p className="cafeVibe">{copy.vibe}</p>
             <h1>{displayName(typedCafe.name)}</h1>
+            <p className="subtitle">{copy.address}</p>
             <p className="subtitle">
-              {copy.neighborhood} · ★ {communityAverage.toFixed(1)} from the
-              floor
+              ★ {communityAverage.toFixed(1)} from the floor
             </p>
             <p className="heroDescription">{copy.description}</p>
             <StarRater
               cafeId={typedCafe.id}
               signedIn={Boolean(user)}
               userStars={userStars}
+            />
+          </div>
+          <div className="cafeHeroPlant">
+            <PlantPot variant={typedCafe.id} visits={visitCount} />
+            <VisitButton
+              cafeId={typedCafe.id}
+              signedIn={Boolean(user)}
+              lastVisitedAt={lastVisitedAt}
             />
           </div>
         </section>

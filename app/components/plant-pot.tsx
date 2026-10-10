@@ -1,53 +1,83 @@
-export function PlantPot({ variant = 0 }: { variant?: number }) {
-  const index = ((variant % 4) + 4) % 4
+import { growthStage } from '@/lib/visits'
 
-  if (index === 1) {
-    return (
-      <svg className="plant" viewBox="0 0 80 90" aria-hidden="true">
-        <ellipse cx="40" cy="78" rx="18" ry="6" fill="#c4a484" opacity="0.35" />
-        <path d="M26 58h28l-4 22H30z" fill="#c4785a" />
-        <path d="M26 58h28v4H26z" fill="#a45c42" />
-        <path d="M40 58c0-18 14-28 14-28s2 16-6 26" fill="#4a7c59" />
-        <path d="M40 58c0-16-14-26-14-26s-2 14 6 24" fill="#5e8f6b" />
-        <circle cx="52" cy="28" r="5" fill="#e8a0bf" />
-      </svg>
-    )
-  }
+const PALETTES = [
+  { pot: '#b08968', rim: '#9c6644', leafA: '#3f6f4e', leafB: '#6ea07a', bud: '#e8a0bf' },
+  { pot: '#c4785a', rim: '#a45c42', leafA: '#4a7c59', leafB: '#5e8f6b', bud: '#e8a0bf' },
+  { pot: '#d9a066', rim: '#b7791f', leafA: '#3f6f4e', leafB: '#4a7c59', bud: '#f2cc8f' },
+  { pot: '#8b5e3c', rim: '#6b4423', leafA: '#4a7c59', leafB: '#6ea07a', bud: '#e07a5f' },
+]
 
-  if (index === 2) {
-    return (
-      <svg className="plant" viewBox="0 0 80 90" aria-hidden="true">
-        <ellipse cx="40" cy="80" rx="16" ry="5" fill="#c4a484" opacity="0.35" />
-        <rect x="30" y="58" width="20" height="22" rx="3" fill="#d9a066" />
-        <path d="M40 58c-12-2-18-16-12-24 8 2 12 10 12 24z" fill="#3f6f4e" />
-        <path d="M40 58c12-2 18-16 12-24-8 2-12 10-12 24z" fill="#4a7c59" />
-        <path d="M40 58c0-20 8-28 8-28s4 14 0 28" fill="#6ea07a" />
-      </svg>
-    )
-  }
+export function PlantPot({
+  variant = 0,
+  visits = 0,
+}: {
+  variant?: number
+  visits?: number
+}) {
+  const palette = PALETTES[((variant % 4) + 4) % 4]
+  const stage = growthStage(visits)
+  const potTop = 36 + stage * 22
+  const viewHeight = potTop + 38
+  const stemTop = 18
+  const leafCount = stage === 0 ? 1 : stage + 1
 
-  if (index === 3) {
-    return (
-      <svg className="plant" viewBox="0 0 80 90" aria-hidden="true">
-        <ellipse cx="40" cy="80" rx="17" ry="5" fill="#c4a484" opacity="0.3" />
-        <path d="M28 60h24l-3 20H31z" fill="#8b5e3c" />
-        <path d="M40 22c10 8 16 22 12 36-10-4-14-16-12-36z" fill="#4a7c59" />
-        <path d="M40 26c-12 8-16 22-12 34 10-2 14-16 12-34z" fill="#6ea07a" />
-        <circle cx="28" cy="34" r="4" fill="#e07a5f" />
-        <circle cx="54" cy="30" r="3.5" fill="#f2cc8f" />
-      </svg>
-    )
-  }
+  const label =
+    visits === 0
+      ? 'A small sprout waiting for its first cafe visit'
+      : `A plant grown taller by ${visits} cafe visit${visits === 1 ? '' : 's'}`
 
   return (
-    <svg className="plant" viewBox="0 0 80 90" aria-hidden="true">
-      <ellipse cx="40" cy="80" rx="18" ry="6" fill="#c4a484" opacity="0.35" />
-      <path d="M24 56h32l-5 24H29z" fill="#b08968" />
-      <path d="M24 56h32v5H24z" fill="#9c6644" />
-      <path d="M40 56c-2-22-18-30-18-30 10 0 18 10 18 30z" fill="#4a7c59" />
-      <path d="M40 56c2-22 18-30 18-30-10 0-18 10-18 30z" fill="#5e8f6b" />
-      <ellipse cx="22" cy="28" rx="8" ry="12" fill="#3f6f4e" />
-      <ellipse cx="58" cy="26" rx="8" ry="12" fill="#6ea07a" />
-    </svg>
+    <div className="plantFrame" role="img" aria-label={label}>
+      <svg
+        className="plant"
+        viewBox={`0 0 90 ${viewHeight}`}
+        aria-hidden="true"
+      >
+        <ellipse
+          cx="45"
+          cy={viewHeight - 8}
+          rx="20"
+          ry="6"
+          fill="#c4a484"
+          opacity="0.35"
+        />
+        <path
+          d={`M24 ${potTop}h42l-6 26H30z`}
+          fill={palette.pot}
+        />
+        <path d={`M24 ${potTop}h42v5H24z`} fill={palette.rim} />
+        <path
+          d={`M45 ${potTop} C40 ${potTop - (potTop - stemTop) / 2} 50 ${stemTop + 16} 45 ${stemTop}`}
+          stroke={palette.leafA}
+          strokeWidth={stage === 0 ? 2 : 3.5}
+          fill="none"
+          strokeLinecap="round"
+        />
+        {Array.from({ length: leafCount }, (_, index) => {
+          const side = index % 2 === 0 ? -1 : 1
+          const y = potTop - 8 - index * (stage === 0 ? 10 : 18)
+          const reach = 12 + Math.min(index, 3) * 2
+          const lift = 14 + Math.min(index, 2) * 2
+          const fill = index % 2 === 0 ? palette.leafA : palette.leafB
+          const tipX = 45 + side * reach
+          const tipY = y - lift
+          return (
+            <path
+              key={index}
+              d={`M45 ${y} C${45 + side * 8} ${y - 4} ${tipX} ${tipY + 6} ${tipX} ${tipY} C${tipX - side * 6} ${tipY + 10} ${45 + side * 4} ${y + 2} 45 ${y}z`}
+              fill={fill}
+            />
+          )
+        })}
+        {stage >= 4 ? (
+          <g>
+            <circle cx="45" cy={stemTop - 2} r="5.5" fill={palette.bud} />
+            <circle cx="45" cy={stemTop - 2} r="2" fill="#fff6ea" />
+          </g>
+        ) : (
+          <ellipse cx="45" cy={stemTop + 1} rx="3" ry="5" fill={palette.leafB} />
+        )}
+      </svg>
+    </div>
   )
 }

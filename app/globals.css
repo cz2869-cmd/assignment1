@@ -110,7 +110,7 @@ h3 {
 
 .hero,
 .featuredBlock {
-  margin-bottom: 28px;
+  margin-bottom: 40px;
 }
 
 .eyebrow {
@@ -132,23 +132,24 @@ h3 {
 
 .cafeList {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 36px;
 }
 
 .cafeCard {
-  display: block;
-  text-decoration: none;
+  display: flex;
+  flex-direction: column;
   background: #fffaf3;
   border: 1px solid #e4d2bc;
   border-radius: 28px;
-  padding: 20px 22px 16px;
+  padding: 0 0 14px;
   box-shadow: 0 10px 24px rgba(90, 58, 37, 0.08);
   transition:
     transform 0.25s ease,
     box-shadow 0.25s ease,
     border-color 0.25s ease;
-  min-height: 188px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .cafeCard:hover,
@@ -163,16 +164,109 @@ h3 {
   border-color: #c4785a;
 }
 
+.cafeCardLink {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cafePhoto {
+  position: relative;
+  height: 168px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 243, 0.15), rgba(92, 67, 52, 0.18)),
+    repeating-linear-gradient(135deg, #f6eadc 0 14px, #efe0cc 14px 28px);
+  color: #8a6a55;
+}
+
+.cafePhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.cafePhotoPeek {
+  height: 36px;
+  transition: height 0.32s ease;
+}
+
+.cafePhotoPeek img {
+  height: 200px;
+}
+
+.cafeCard:hover .cafePhotoPeek,
+.cafeCard:focus-within .cafePhotoPeek {
+  height: 200px;
+}
+
+.cafePhotoLabel,
+.cafePhotoCredit {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 250, 243, 0.9);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.cafePhotoLabel {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cafeCardBody {
+  padding: 16px 22px 0;
+}
+
 .cafeCardTop {
-  display: grid;
-  grid-template-columns: 64px 1fr auto;
+  display: flex;
+  justify-content: space-between;
   gap: 12px;
   align-items: start;
 }
 
+.cafeGarden {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 18px;
+  padding: 4px 18px 0 12px;
+}
+
+.plantFrame {
+  display: flex;
+  align-items: flex-end;
+}
+
 .plant {
-  width: 64px;
-  height: 72px;
+  width: 96px;
+  height: auto;
+}
+
+.visitControl {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding-bottom: 16px;
+}
+
+.visitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.visitButtonPending:disabled {
+  cursor: wait;
 }
 
 .cafeVibe {
@@ -184,10 +278,15 @@ h3 {
   text-transform: uppercase;
 }
 
-.cafeNeighborhood {
+.cafeNeighborhood,
+.cafeAddress {
   margin: 4px 0 0;
   color: #8a6a55;
   font-size: 14px;
+}
+
+.cafeAddress {
+  font-weight: 700;
 }
 
 .rating {
@@ -268,14 +367,40 @@ h3 {
 
 .cafeHero {
   display: grid;
-  grid-template-columns: 90px 1fr;
-  gap: 16px;
+  grid-template-columns: minmax(320px, 0.95fr) 1.25fr auto;
+  gap: 22px;
+  align-items: stretch;
   background: #fffaf3;
   border: 1px solid #e4d2bc;
   border-radius: 32px;
-  padding: 28px;
+  padding: 22px;
   margin: 18px 0 24px;
   box-shadow: 0 12px 30px rgba(90, 58, 37, 0.08);
+}
+
+.cafePhotoHero {
+  height: auto;
+  align-self: stretch;
+  min-height: 320px;
+  border-radius: 22px;
+}
+
+.cafePhotoHero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-position: center;
+}
+
+.cafeHeroPlant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: end;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 150px;
 }
 
 .heroDescription {
@@ -484,9 +609,18 @@ input[type="file"] {
 
 @media (max-width: 800px) {
   .detailGrid,
-  .cafeHero,
-  .cafeCardTop {
+  .cafeHero {
     grid-template-columns: 1fr;
+  }
+
+  .cafePhotoHero {
+    height: 240px;
+    min-height: 0;
+  }
+
+  .cafePhotoHero img {
+    position: static;
+    height: 100%;
   }
 
   .cafeCta {

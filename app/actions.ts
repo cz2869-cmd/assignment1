@@ -3,6 +3,7 @@
 import { cafeCopy, displayName, MOODS } from '@/lib/cafe-copy'
 import { createClient } from '@/lib/server'
 import type { ActionResult } from '@/lib/types'
+import { canCheckIn } from '@/lib/visits'
 import { revalidatePath } from 'next/cache'
 
 async function requireUser() {
@@ -280,4 +281,48 @@ export async function generateCaption(
 
   refreshCafe(cafeId)
   return { text }
+}
+
+export async function checkInCafe(cafeId: number): Promise<ActionResult> {
+  const { supabase, user, error } = await requireUser()
+  if (!user) {
+    return { error: error ?? 'Sign in with Google to log a visit.' }
+  }
+
+  const { data: latest, error: lookupError } = await supabase
+    .from('cafe_visits')
+    .select('visited_at')
+    .eq('cafe_id', cafeId)
+    .eq('user_id', user.id)
+    .order('visited_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (lookupError) {
+    return {
+      error: lookupError.message.includes('cafe_visits')
+        ? 'Run the cafe_visits section in supabase/schema.sql, then try again.'
+        : lookupError.message,
+    }
+  }
+
+  if (!canCheckIn(latest?.visited_at ?? null)) {
+    return { error: 'You already logged this cafe in the last 24 hours.' }
+  }
+
+  const { error: insertError } = await supabase.from('cafe_visits').insert({
+    cafe_id: cafeId,
+    user_id: user.id,
+  })
+
+  if (insertError) {
+    return {
+      error: insertError.message.includes('cafe_visits')
+        ? 'Run the cafe_visits section in supabase/schema.sql, then try again.'
+        : insertError.message,
+    }
+  }
+
+  refreshCafe(cafeId)
+  return {}
 }

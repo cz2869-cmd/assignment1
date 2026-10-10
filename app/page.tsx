@@ -21,6 +21,10 @@ export default async function Home() {
     )
   }
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   const list = (cafes ?? []) as Cafe[]
   const day = Math.floor(Date.now() / 86_400_000)
   const featured = list.length > 0 ? list[day % list.length] : null
@@ -31,10 +35,14 @@ export default async function Home() {
   const { data: ratings } = await supabase
     .from('cafe_ratings')
     .select('cafe_id, stars')
+  const { data: visits } = await supabase
+    .from('cafe_visits')
+    .select('cafe_id, user_id, visited_at')
 
   const commentCounts = countBy(comments ?? [])
   const captionCounts = countBy(captions ?? [])
   const ratingAverages = averageBy(ratings ?? [])
+  const visitSummary = summarizeVisits(visits ?? [], user?.id ?? null)
 
   return (
     <main className="page">
@@ -61,6 +69,9 @@ export default async function Home() {
               communityRating={
                 ratingAverages.get(featured.id) ?? Number(featured.rating ?? 0)
               }
+              visitCount={visitSummary.counts.get(featured.id) ?? 0}
+              signedIn={Boolean(user)}
+              lastVisitedAt={visitSummary.lastByUser.get(featured.id) ?? null}
             />
           </section>
         ) : null}
@@ -75,12 +86,35 @@ export default async function Home() {
               communityRating={
                 ratingAverages.get(cafe.id) ?? Number(cafe.rating ?? 0)
               }
+              visitCount={visitSummary.counts.get(cafe.id) ?? 0}
+              signedIn={Boolean(user)}
+              lastVisitedAt={visitSummary.lastByUser.get(cafe.id) ?? null}
             />
           ))}
         </div>
       </div>
     </main>
   )
+}
+
+function summarizeVisits(
+  rows: { cafe_id: number; user_id: string; visited_at: string }[],
+  userId: string | null
+) {
+  const counts = new Map<number, number>()
+  const lastByUser = new Map<number, string>()
+
+  for (const row of rows) {
+    counts.set(row.cafe_id, (counts.get(row.cafe_id) ?? 0) + 1)
+    if (userId && row.user_id === userId) {
+      const previous = lastByUser.get(row.cafe_id)
+      if (!previous || row.visited_at > previous) {
+        lastByUser.set(row.cafe_id, row.visited_at)
+      }
+    }
+  }
+
+  return { counts, lastByUser }
 }
 
 function countBy(rows: { cafe_id: number }[]) {

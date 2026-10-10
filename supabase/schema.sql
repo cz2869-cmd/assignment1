@@ -314,3 +314,32 @@ grant select on public.cafe_ratings to anon, authenticated;
 grant insert, update, delete on public.cafe_ratings to authenticated;
 
 grant usage, select on all sequences in schema public to authenticated;
+
+create table if not exists public.cafe_visits (
+  id bigint generated always as identity primary key,
+  cafe_id bigint not null references public.cafe (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  visited_at timestamptz not null default now()
+);
+
+create index if not exists cafe_visits_cafe_user_idx
+  on public.cafe_visits (cafe_id, user_id, visited_at desc);
+
+alter table public.cafe_visits enable row level security;
+
+drop policy if exists "cafe_visits_select_public" on public.cafe_visits;
+create policy "cafe_visits_select_public"
+on public.cafe_visits
+for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "cafe_visits_insert_own" on public.cafe_visits;
+create policy "cafe_visits_insert_own"
+on public.cafe_visits
+for insert
+to authenticated
+with check (user_id = auth.uid());
+
+grant select on public.cafe_visits to anon, authenticated;
+grant insert on public.cafe_visits to authenticated;
