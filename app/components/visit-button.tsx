@@ -25,12 +25,15 @@ export default function VisitButton({
   const ready = canCheckIn(visitedAt)
   const hoursLeft = hoursUntilCheckIn(visitedAt)
 
-  function checkIn() {
-    if (!signedIn) {
-      setMessage('Sign in with Google to log a visit.')
-      return
-    }
+  if (!signedIn) {
+    return (
+      <div className="visitControl">
+        <p className="visitPrompt">Sign in to log a visit</p>
+      </div>
+    )
+  }
 
+  function checkIn() {
     startTransition(async () => {
       const result = await checkInCafe(cafeId)
       if (result.error) {
@@ -42,15 +45,11 @@ export default function VisitButton({
     })
   }
 
-  let label = 'I went today'
-  if (!signedIn) {
-    label = 'Sign in to log a visit'
-  } else if (!ready) {
-    label =
-      hoursLeft <= 1
-        ? 'Back in about an hour'
-        : `Back in ${hoursLeft} hours`
-  }
+  const label = ready
+    ? 'I went today'
+    : hoursLeft <= 1
+      ? 'Back in about an hour'
+      : `Back in ${hoursLeft} hours`
 
   return (
     <div className="visitControl">
@@ -58,7 +57,7 @@ export default function VisitButton({
         className={`primaryButton visitButton${pending ? ' visitButtonPending' : ''}`}
         type="button"
         onClick={checkIn}
-        disabled={pending || (signedIn && !ready)}
+        disabled={pending || !ready}
       >
         {label}
       </button>
