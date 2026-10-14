@@ -69,10 +69,14 @@ function readSuggestion(
 
 export async function suggestCafe(
   vibes: string[],
-  note: string
+  note: string,
+  excludeIds: number[] = []
 ): Promise<ActionResult> {
   const chosen = VIBES.filter((vibe) => vibes.includes(vibe))
   const request = note.trim().slice(0, 240)
+  const skipped = new Set(
+    excludeIds.filter((id) => Number.isInteger(id) && id > 0)
+  )
 
   if (chosen.length === 0 && request.length === 0) {
     return { error: 'Pick a vibe, or tell us what you are looking for.' }
@@ -95,16 +99,24 @@ export async function suggestCafe(
     return { error: cafeError?.message ?? 'No cafes to choose from.' }
   }
 
-  const catalog = cafes.map((cafe) => {
-    const copy = cafeCopy(cafe.name, cafe)
+  const catalog = cafes
+    .filter((cafe) => !skipped.has(cafe.id as number))
+    .map((cafe) => {
+      const copy = cafeCopy(cafe.name, cafe)
+      return {
+        id: cafe.id as number,
+        name: displayName(cafe.name),
+        vibe: copy.vibe,
+        address: copy.address,
+        description: copy.description,
+      }
+    })
+
+  if (catalog.length === 0) {
     return {
-      id: cafe.id as number,
-      name: displayName(cafe.name),
-      vibe: copy.vibe,
-      address: copy.address,
-      description: copy.description,
+      error: 'Those are all the cafes we have. Try a different vibe.',
     }
-  })
+  }
 
   const prompt = [
     'Pick exactly one cafe for a Columbia student.',

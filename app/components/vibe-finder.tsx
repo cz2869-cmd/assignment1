@@ -3,6 +3,7 @@
 import { suggestCafe } from '@/app/actions'
 import { displayName } from '@/lib/cafe-copy'
 import { VIBES } from '@/lib/vibes'
+import Link from 'next/link'
 import { useState, useTransition } from 'react'
 
 type VibeCafe = {
@@ -23,6 +24,8 @@ export default function VibeFinder({ cafes }: VibeFinderProps) {
   const [pick, setPick] = useState<{ cafeId: number; reason: string } | null>(
     null
   )
+  const [skipped, setSkipped] = useState<number[]>([])
+  const [asking, setAsking] = useState<'fresh' | 'another' | null>(null)
   const [pending, startTransition] = useTransition()
 
   function toggle(vibe: string) {
@@ -33,21 +36,32 @@ export default function VibeFinder({ cafes }: VibeFinderProps) {
     )
   }
 
-  function suggest() {
+  function requestSuggestion(exclude: number[], kind: 'fresh' | 'another') {
     if (selected.length === 0 && note.trim().length === 0) {
       setMessage('Pick a vibe, or tell us what you are looking for.')
       setPick(null)
+      setSkipped([])
       return
     }
 
     setMessage('')
+    setAsking(kind)
+    if (kind === 'fresh') {
+      setPick(null)
+      setSkipped([])
+    }
+
     startTransition(async () => {
-      const result = await suggestCafe(selected, note)
-      if (result.error || !result.cafeId) {
-        setPick(null)
+      const result = await suggestCafe(selected, note, exclude)
+      setAsking(null)
+      if (result.error || !result.cafeId || exclude.includes(result.cafeId)) {
+        if (kind === 'fresh') {
+          setPick(null)
+        }
         setMessage(result.error ?? 'No cafe came back. Try again.')
         return
       }
+      setSkipped(exclude)
       setPick({ cafeId: result.cafeId, reason: result.text ?? '' })
     })
   }
@@ -91,10 +105,10 @@ export default function VibeFinder({ cafes }: VibeFinderProps) {
       <button
         className="primaryButton"
         type="button"
-        onClick={suggest}
+        onClick={() => requestSuggestion([], 'fresh')}
         disabled={pending}
       >
-        {pending ? 'Looking...' : 'Suggest a cafe'}
+        {asking === 'fresh' ? 'Looking...' : 'Suggest a cafe'}
       </button>
       {message ? <p className="inlineError">{message}</p> : null}
       {cafe && pick ? (
@@ -109,9 +123,22 @@ export default function VibeFinder({ cafes }: VibeFinderProps) {
             <h3>{displayName(cafe.name)}</h3>
             <p className="cafeAddress">{cafe.address}</p>
             {pick.reason ? <p className="vibeReason">{pick.reason}</p> : null}
-            <a className="textLink" href={`/cafes/${cafe.id}`}>
-              Open this cafe →
-            </a>
+            <p className="vibePrompt">How does this one sound?</p>
+            <div className="vibeActions">
+              <Link className="primaryButton" href={`/cafes/${cafe.id}`}>
+                Bring me there
+              </Link>
+              <button
+                className="ghostButton"
+                type="button"
+                onClick={() =>
+                  requestSuggestion([...skipped, pick.cafeId], 'another')
+                }
+                disabled={pending}
+              >
+                {asking === 'another' ? 'Looking...' : 'Not this one'}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

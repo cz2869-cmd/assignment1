@@ -483,6 +483,23 @@ h3 {
   margin: 8px 0 12px;
 }
 
+.vibePrompt {
+  margin: 0 0 10px;
+  font-weight: 800;
+}
+
+.vibeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.vibeActions .primaryButton,
+.vibeActions .ghostButton {
+  text-decoration: none;
+}
+
 .panel {
   background: #fffaf3;
   border: 1px solid #e4d2bc;
