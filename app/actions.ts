@@ -1,9 +1,10 @@
 'use server'
 
-import { cafeCopy, displayName, MOODS } from '@/lib/cafe-copy'
+import { cafeCopy, displayName } from '@/lib/cafe-copy'
 import { createClient } from '@/lib/server'
 import type { ActionResult } from '@/lib/types'
 import { canCheckIn } from '@/lib/visits'
+import { VIBES } from '@/lib/vibes'
 import { revalidatePath } from 'next/cache'
 
 async function requireUser() {
@@ -34,57 +35,148 @@ function refreshCafe(cafeId: number) {
   revalidatePath(`/cafes/${cafeId}`)
 }
 
-export async function voteOnCaption(
-  captionId: number,
-  value: 1 | -1
+function readSuggestion(
+  text: string,
+  catalog: { id: number; name: string }[]
+): ActionResult | null {
+  const match = text.match(/\{[\s\S]*\}/)
+  if (!match) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(match[0]) as {
+      id?: unknown
+      cafeId?: unknown
+      name?: unknown
+      reason?: unknown
+    }
+    const rawId = parsed.id ?? parsed.cafeId
+    const named =
+      typeof parsed.name === 'string' ? parsed.name.trim().toLowerCase() : ''
+    const cafe =
+      catalog.find((item) => item.id === Number(rawId)) ??
+      catalog.find((item) => item.name.toLowerCase() === named)
+    const reason = typeof parsed.reason === 'string' ? parsed.reason.trim() : ''
+    if (!cafe || !reason) {
+      return null
+    }
+    return { cafeId: cafe.id, text: reason }
+  } catch {
+    return null
+  }
+}
+
+export async function suggestCafe(
+  vibes: string[],
+  note: string
 ): Promise<ActionResult> {
-  const { supabase, user, error } = await requireUser()
-  if (!user) {
-    return { error: error ?? 'Sign in to rate captions.' }
+  const chosen = VIBES.filter((vibe) => vibes.includes(vibe))
+  const request = note.trim().slice(0, 240)
+
+  if (chosen.length === 0 && request.length === 0) {
+    return { error: 'Pick a vibe, or tell us what you are looking for.' }
   }
 
-  const { data: caption, error: lookupError } = await supabase
-    .from('captions')
-    .select('id, cafe_id, caption_votes(value, user_id)')
-    .eq('id', captionId)
-    .single()
-
-  if (lookupError || !caption) {
-    return { error: lookupError?.message ?? 'Caption not found.' }
-  }
-
-  const existing =
-    caption.caption_votes?.find(
-      (vote: { user_id: string; value: number }) => vote.user_id === user.id
-    )?.value ?? 0
-
-  if (existing === value) {
-    const { error: deleteError } = await supabase
-      .from('caption_votes')
-      .delete()
-      .eq('caption_id', captionId)
-      .eq('user_id', user.id)
-
-    if (deleteError) {
-      return { error: deleteError.message }
-    }
-  } else {
-    const { error: upsertError } = await supabase.from('caption_votes').upsert(
-      {
-        caption_id: captionId,
-        user_id: user.id,
-        value,
-      },
-      { onConflict: 'caption_id,user_id' }
-    )
-
-    if (upsertError) {
-      return { error: upsertError.message }
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    return {
+      error:
+        'The Gemini key is missing on this server, so a cafe cannot be suggested yet.',
     }
   }
 
-  refreshCafe(caption.cafe_id)
-  return {}
+  const supabase = await createClient()
+  const { data: cafes, error: cafeError } = await supabase
+    .from('cafe')
+    .select('id, name, description, neighborhood, vibe')
+
+  if (cafeError || !cafes || cafes.length === 0) {
+    return { error: cafeError?.message ?? 'No cafes to choose from.' }
+  }
+
+  const catalog = cafes.map((cafe) => {
+    const copy = cafeCopy(cafe.name, cafe)
+    return {
+      id: cafe.id as number,
+      name: displayName(cafe.name),
+      vibe: copy.vibe,
+      address: copy.address,
+      description: copy.description,
+    }
+  })
+
+  const prompt = [
+    'Pick exactly one cafe for a Columbia student.',
+    `Vibes they chose: ${chosen.length > 0 ? chosen.join(', ') : 'none'}.`,
+    `What they wrote: ${request || 'nothing extra'}.`,
+    'Cafes:',
+    ...catalog.map(
+      (cafe) =>
+        `${cafe.id} | ${cafe.name} | ${cafe.vibe} | ${cafe.address} | ${cafe.description}`
+    ),
+    'Reply with JSON only: {"id": <one cafe id from the list>, "reason": "<one or two warm sentences explaining the pick>"}',
+    'Do not invent a cafe. Do not mention that you are an AI.',
+  ].join('\n')
+
+  const models = ['gemini-3-flash-preview', 'gemini-3.8-flash']
+  let lastStatus = 0
+  let timedOut = false
+
+  for (const model of models) {
+    for (const generationConfig of [
+      { maxOutputTokens: 400, thinkingConfig: { thinkingBudget: 0 } },
+      { maxOutputTokens: 400 },
+    ]) {
+      let response: Response
+      try {
+        response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(20_000),
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig,
+            }),
+          }
+        )
+      } catch {
+        timedOut = true
+        break
+      }
+
+      if (response.status === 400) {
+        continue
+      }
+
+      if (!response.ok) {
+        lastStatus = response.status
+        break
+      }
+
+      const payload = (await response.json()) as {
+        candidates?: { content?: { parts?: { text?: string }[] } }[]
+      }
+      const text = payload.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text ?? '')
+        .join(' ')
+        .trim()
+      const suggestion = readSuggestion(text ?? '', catalog)
+
+      if (suggestion) {
+        return suggestion
+      }
+      break
+    }
+  }
+
+  if (timedOut || lastStatus === 503) {
+    return { error: 'Gemini took too long to answer. Try again in a moment.' }
+  }
+
+  return { error: 'Could not suggest a cafe. Try again.' }
 }
 
 export async function voteOnComment(
@@ -199,88 +291,6 @@ export async function rateCafe(
 
   refreshCafe(cafeId)
   return {}
-}
-
-export async function generateCaption(
-  cafeId: number,
-  moodId: string
-): Promise<ActionResult> {
-  const { supabase, user, error } = await requireUser()
-  if (!user) {
-    return { error: error ?? 'Sign in to generate a caption.' }
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) {
-    return {
-      error:
-        'Add a GEMINI_API_KEY to .env.local (Google AI Studio, free) to brew captions.',
-    }
-  }
-
-  const { data: cafe, error: cafeError } = await supabase
-    .from('cafe')
-    .select('*')
-    .eq('id', cafeId)
-    .single()
-
-  if (cafeError || !cafe) {
-    return { error: cafeError?.message ?? 'Cafe not found.' }
-  }
-
-  const mood = MOODS.find((item) => item.id === moodId) ?? MOODS[0]
-  const copy = cafeCopy(cafe.name, cafe)
-  const prompt = [
-    `Write one short social caption (1-2 sentences, no hashtags, no quotes) for ${displayName(cafe.name)} in ${copy.neighborhood}.`,
-    `Cafe vibe: ${copy.vibe}. ${copy.description}`,
-    `Write it in the voice of ${mood.hint}.`,
-    'Keep it warm, specific, and a little witty. Do not mention that you are an AI.',
-  ].join(' ')
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          maxOutputTokens: 160,
-        },
-      }),
-    }
-  )
-
-  if (!response.ok) {
-    const details = await response.text()
-    return { error: `Gemini could not generate a caption. ${details.slice(0, 180)}` }
-  }
-
-  const payload = (await response.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[]
-  }
-  const text = payload.candidates?.[0]?.content?.parts
-    ?.map((part) => part.text ?? '')
-    .join(' ')
-    .trim()
-
-  if (!text) {
-    return { error: 'Gemini returned an empty caption. Try another mood.' }
-  }
-
-  const { error: insertError } = await supabase.from('captions').insert({
-    cafe_id: cafeId,
-    user_id: user.id,
-    prompt,
-    generated_text: text,
-  })
-
-  if (insertError) {
-    return { error: insertError.message }
-  }
-
-  refreshCafe(cafeId)
-  return { text }
 }
 
 export async function checkInCafe(cafeId: number): Promise<ActionResult> {

@@ -15,7 +15,7 @@ const body = Nunito({
 export const metadata: Metadata = {
   title: "Morningside Nook",
   description:
-    "Cozy campus cafes, AI captions, and student votes for Columbia College.",
+    "Cozy campus cafes and a suggestion for where to sit, for Columbia College.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

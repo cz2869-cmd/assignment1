@@ -8,7 +8,6 @@ type CafeCardProps = {
   cafe: Cafe
   featured?: boolean
   commentCount?: number
-  captionCount?: number
   communityRating?: number | null
   visitCount?: number
   signedIn?: boolean
@@ -19,7 +18,6 @@ export default function CafeCard({
   cafe,
   featured = false,
   commentCount = 0,
-  captionCount = 0,
   communityRating,
   visitCount = 0,
   signedIn = false,
@@ -48,7 +46,6 @@ export default function CafeCard({
           </div>
           <p className="cafeDescription">{copy.description}</p>
           <div className="cafeMeta">
-            <span>{captionCount} AI captions</span>
             <span>{commentCount} notes</span>
             <span>
               {visitCount} visit{visitCount === 1 ? '' : 's'}

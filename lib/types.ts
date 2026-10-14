@@ -18,17 +18,6 @@ export type VoteRow = {
   user_id: string
 }
 
-export type Caption = {
-  id: number
-  cafe_id: number
-  user_id: string
-  prompt: string
-  generated_text: string
-  created_at: string
-  profiles: ProfileSnippet | ProfileSnippet[] | null
-  caption_votes: VoteRow[] | null
-}
-
 export type Comment = {
   id: number
   cafe_id: number
@@ -42,4 +31,5 @@ export type Comment = {
 export type ActionResult = {
   error?: string
   text?: string
+  cafeId?: number
 }

@@ -123,31 +123,3 @@ export function cafeCopy(
     image: fallback.image,
   }
 }
-
-export const MOODS = [
-  {
-    id: 'late-night',
-    label: 'Late-night grind',
-    hint: 'a Columbia student pulling a late study session after dining hall hours',
-  },
-  {
-    id: 'weekend',
-    label: 'Weekend explore',
-    hint: 'a junior new to NYC wandering the neighborhood on a Saturday',
-  },
-  {
-    id: 'homesick',
-    label: 'Midwest homesick',
-    hint: 'someone from the midwest who wants a cafe that feels a little like home',
-  },
-  {
-    id: 'online',
-    label: 'Chronically online',
-    hint: 'a chronically online student writing the caption they would actually post',
-  },
-  {
-    id: 'rain',
-    label: 'Rainy Morningside',
-    hint: 'a rainy afternoon when the dorm feels too small and the city feels huge',
-  },
-] as const

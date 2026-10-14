@@ -1,8 +1,7 @@
 import { cafeCopy, displayName } from '@/lib/cafe-copy'
 import { createClient } from '@/lib/server'
-import type { Cafe, Caption, Comment } from '@/lib/types'
+import type { Cafe, Comment } from '@/lib/types'
 import CafePhoto from '@/app/components/cafe-photo'
-import CaptionBoard from '@/app/components/caption-board'
 import CommentBoard from '@/app/components/comment-board'
 import { PlantPot } from '@/app/components/plant-pot'
 import SiteHeader from '@/app/components/site-header'
@@ -36,14 +35,6 @@ export default async function CafePage({ params }: CafePageProps) {
 
   const typedCafe = cafe as Cafe
   const copy = cafeCopy(typedCafe.name, typedCafe)
-
-  const { data: captions, error: captionError } = await supabase
-    .from('captions')
-    .select(
-      'id, cafe_id, user_id, prompt, generated_text, created_at, profiles(first_name, last_name), caption_votes(value, user_id)'
-    )
-    .eq('cafe_id', cafeId)
-    .order('created_at', { ascending: false })
 
   const { data: comments, error: commentError } = await supabase
     .from('comments')
@@ -79,7 +70,7 @@ export default async function CafePage({ params }: CafePageProps) {
   const userStars =
     ratings?.find((row) => row.user_id === user?.id)?.stars ?? 0
 
-  const setupError = captionError || commentError
+  const setupError = commentError
 
   return (
     <main className="page">
@@ -123,17 +114,11 @@ export default async function CafePage({ params }: CafePageProps) {
         {setupError ? (
           <p className="banner">
             Run <code>supabase/schema.sql</code> in the Supabase SQL editor so
-            captions, comments, votes, and RLS can load.
+            comments, votes, and RLS can load.
           </p>
         ) : null}
 
         <div className="detailGrid">
-          <CaptionBoard
-            cafeId={typedCafe.id}
-            captions={(captions ?? []) as Caption[]}
-            signedIn={Boolean(user)}
-            userId={user?.id ?? null}
-          />
           <CommentBoard
             cafeId={typedCafe.id}
             comments={(comments ?? []) as Comment[]}

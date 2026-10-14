@@ -420,8 +420,67 @@ h3 {
 
 .detailGrid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1fr;
   gap: 18px;
+}
+
+.vibeFinder {
+  background: #fffaf3;
+  border: 1px solid #e4d2bc;
+  border-radius: 28px;
+  padding: 22px;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 24px rgba(90, 58, 37, 0.08);
+}
+
+.vibeFinder h2 {
+  font-size: 32px;
+}
+
+.vibeLead,
+.vibeLabel,
+.vibeReason {
+  color: #6b5344;
+  line-height: 1.5;
+}
+
+.vibeLead {
+  margin: 8px 0 16px;
+}
+
+.vibeLabel {
+  display: block;
+  margin: 4px 0 8px;
+  font-weight: 800;
+}
+
+.vibeNote {
+  min-height: 88px;
+  margin-bottom: 14px;
+  resize: vertical;
+}
+
+.vibeResult {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #e4d2bc;
+}
+
+.vibeResult img,
+.vibeResultPhoto {
+  width: 180px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 18px;
+  background: #f6eadc;
+}
+
+.vibeReason {
+  margin: 8px 0 12px;
 }
 
 .panel {
@@ -630,6 +689,15 @@ input[type="file"] {
   .cafePhotoHero img {
     position: static;
     height: 100%;
+  }
+
+  .vibeResult {
+    grid-template-columns: 1fr;
+  }
+
+  .vibeResult img,
+  .vibeResultPhoto {
+    width: 100%;
   }
 
   .cafeCta {

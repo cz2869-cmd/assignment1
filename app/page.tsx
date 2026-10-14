@@ -1,5 +1,7 @@
 import CafeCard from '@/app/components/cafe-card'
 import SiteHeader from '@/app/components/site-header'
+import VibeFinder from '@/app/components/vibe-finder'
+import { cafeCopy } from '@/lib/cafe-copy'
 import { createClient } from '@/lib/server'
 import type { Cafe } from '@/lib/types'
 
@@ -31,7 +33,6 @@ export default async function Home() {
   const rest = list.filter((cafe) => cafe.id !== featured?.id)
 
   const { data: comments } = await supabase.from('comments').select('cafe_id')
-  const { data: captions } = await supabase.from('captions').select('cafe_id')
   const { data: ratings } = await supabase
     .from('cafe_ratings')
     .select('cafe_id, stars')
@@ -40,7 +41,6 @@ export default async function Home() {
     .select('cafe_id, user_id, visited_at')
 
   const commentCounts = countBy(comments ?? [])
-  const captionCounts = countBy(captions ?? [])
   const ratingAverages = averageBy(ratings ?? [])
   const visitSummary = summarizeVisits(visits ?? [], user?.id ?? null)
 
@@ -53,10 +53,22 @@ export default async function Home() {
           <p className="eyebrow">A daily table for Columbia students</p>
           <h1>Morningside Nook</h1>
           <p className="subtitle">
-            Cozy campus cafes, AI-brewed captions, and a floor vote on what
-            actually slaps. Come back tomorrow for a new study pick.
+            Cozy campus cafes, and a little help when you can&apos;t decide
+            where to sit. Come back tomorrow for a new study pick.
           </p>
         </section>
+
+        <VibeFinder
+          cafes={list.map((cafe) => {
+            const copy = cafeCopy(cafe.name, cafe)
+            return {
+              id: cafe.id,
+              name: cafe.name,
+              address: copy.address,
+              image: copy.image,
+            }
+          })}
+        />
 
         {featured ? (
           <section className="featuredBlock">
@@ -65,7 +77,6 @@ export default async function Home() {
               cafe={featured}
               featured
               commentCount={commentCounts.get(featured.id) ?? 0}
-              captionCount={captionCounts.get(featured.id) ?? 0}
               communityRating={
                 ratingAverages.get(featured.id) ?? Number(featured.rating ?? 0)
               }
@@ -82,7 +93,6 @@ export default async function Home() {
               key={cafe.id}
               cafe={cafe}
               commentCount={commentCounts.get(cafe.id) ?? 0}
-              captionCount={captionCounts.get(cafe.id) ?? 0}
               communityRating={
                 ratingAverages.get(cafe.id) ?? Number(cafe.rating ?? 0)
               }
