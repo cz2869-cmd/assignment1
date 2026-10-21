@@ -1,9 +1,9 @@
 'use client'
 
-import { suggestCafe } from '@/app/actions'
+import { recordSuggestionOutcome, suggestCafe } from '@/app/actions'
 import { displayName } from '@/lib/cafe-copy'
 import { VIBES } from '@/lib/vibes'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 
 type VibeCafe = {
@@ -21,12 +21,16 @@ export default function VibeFinder({ cafes }: VibeFinderProps) {
   const [selected, setSelected] = useState<string[]>([])
   const [note, setNote] = useState('')
   const [message, setMessage] = useState('')
-  const [pick, setPick] = useState<{ cafeId: number; reason: string } | null>(
-    null
-  )
+  const [pick, setPick] = useState<{
+    cafeId: number
+    reason: string
+    suggestionId?: number
+    token?: string
+  } | null>(null)
   const [skipped, setSkipped] = useState<number[]>([])
   const [asking, setAsking] = useState<'fresh' | 'another' | null>(null)
   const [pending, startTransition] = useTransition()
+  const router = useRouter()
 
   function toggle(vibe: string) {
     setSelected((current) =>
@@ -44,6 +48,11 @@ export default function VibeFinder({ cafes }: VibeFinderProps) {
       return
     }
 
+    const previous =
+      kind === 'another' && pick?.suggestionId && pick.token
+        ? { id: pick.suggestionId, token: pick.token }
+        : null
+
     setMessage('')
     setAsking(kind)
     if (kind === 'fresh') {
@@ -52,6 +61,9 @@ export default function VibeFinder({ cafes }: VibeFinderProps) {
     }
 
     startTransition(async () => {
+      if (previous) {
+        await recordSuggestionOutcome(previous.id, previous.token, 'rejected')
+      }
       const result = await suggestCafe(selected, note, exclude)
       setAsking(null)
       if (result.error || !result.cafeId || exclude.includes(result.cafeId)) {
@@ -62,11 +74,28 @@ export default function VibeFinder({ cafes }: VibeFinderProps) {
         return
       }
       setSkipped(exclude)
-      setPick({ cafeId: result.cafeId, reason: result.text ?? '' })
+      setPick({
+        cafeId: result.cafeId,
+        reason: result.text ?? '',
+        suggestionId: result.suggestionId,
+        token: result.token,
+      })
     })
   }
 
   const cafe = pick ? cafes.find((item) => item.id === pick.cafeId) : null
+
+  function bringMeThere() {
+    if (!cafe || !pick) {
+      return
+    }
+    startTransition(async () => {
+      if (pick.suggestionId && pick.token) {
+        await recordSuggestionOutcome(pick.suggestionId, pick.token, 'accepted')
+      }
+      router.push(`/cafes/${cafe.id}`)
+    })
+  }
 
   return (
     <section className="vibeFinder">
@@ -125,9 +154,14 @@ export default function VibeFinder({ cafes }: VibeFinderProps) {
             {pick.reason ? <p className="vibeReason">{pick.reason}</p> : null}
             <p className="vibePrompt">How does this one sound?</p>
             <div className="vibeActions">
-              <Link className="primaryButton" href={`/cafes/${cafe.id}`}>
+              <button
+                className="primaryButton"
+                type="button"
+                onClick={bringMeThere}
+                disabled={pending}
+              >
                 Bring me there
-              </Link>
+              </button>
               <button
                 className="ghostButton"
                 type="button"

@@ -178,6 +178,26 @@ export async function suggestCafe(
       const suggestion = readSuggestion(text ?? '', catalog)
 
       if (suggestion) {
+        const { data: saved, error: saveError } = await supabase.rpc(
+          'save_cafe_suggestion',
+          {
+            chosen_vibes: chosen,
+            written_note: request,
+            chosen_cafe: suggestion.cafeId,
+            ai_reason: suggestion.text ?? '',
+          }
+        )
+        if (saveError) {
+          console.error('Could not store cafe suggestion', saveError.message)
+        }
+        const row = Array.isArray(saved) ? saved[0] : saved
+        if (row?.suggestion_id && row?.suggestion_token) {
+          return {
+            ...suggestion,
+            suggestionId: row.suggestion_id as number,
+            token: row.suggestion_token as string,
+          }
+        }
         return suggestion
       }
       break
@@ -189,6 +209,29 @@ export async function suggestCafe(
   }
 
   return { error: 'Could not suggest a cafe. Try again.' }
+}
+
+export async function recordSuggestionOutcome(
+  suggestionId: number,
+  token: string,
+  outcome: 'accepted' | 'rejected'
+): Promise<ActionResult> {
+  if (!suggestionId || !token) {
+    return {}
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('record_suggestion_outcome', {
+    suggestion_id: suggestionId,
+    suggestion_token: token,
+    next_outcome: outcome,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return {}
 }
 
 export async function voteOnComment(

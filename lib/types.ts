@@ -32,4 +32,6 @@ export type ActionResult = {
   error?: string
   text?: string
   cafeId?: number
+  suggestionId?: number
+  token?: string
 }
